@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wish Oracle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-theme="auto">
+    <header class="app-header">
+      <div>
+        <h1>WISH ORACLE</h1>
+        <p>For fun only — take it lightly.</p>
+      </div>
+      <button id="theme-toggle" class="secondary" type="button" aria-label="Toggle color theme">
+        Auto Theme
+      </button>
+    </header>
+
+    <main>
+      <section id="wish-section" class="card" aria-labelledby="wish-title">
+        <h2 id="wish-title">Step 1 · Enter Wish</h2>
+        <form id="wish-form">
+          <label class="input-group" for="wish-input">
+            <span class="visually-hidden">Wish input</span>
+            <input id="wish-input" type="text" name="wish" minlength="3" maxlength="140" placeholder="Write down your wish..." autocomplete="off" required>
+          </label>
+          <p id="wish-error" class="error" role="alert" aria-live="polite"></p>
+          <button id="generate-btn" type="submit">Generate Images</button>
+        </form>
+      </section>
+
+      <section id="images-section" class="card hidden" aria-labelledby="images-title">
+        <h2 id="images-title">Step 2 · Interpret Your Images</h2>
+        <div id="image-grid" class="image-grid" role="list"></div>
+        <button id="submit-interpretations" type="button" disabled>Submit Interpretations</button>
+      </section>
+
+      <section id="result-section" class="card hidden" aria-labelledby="result-title">
+        <h2 id="result-title">Step 3 · Your Results</h2>
+        <div class="probability">
+          <span>Wish Fulfillment Probability:</span>
+          <strong id="probability-value">0%</strong>
+        </div>
+        <p id="analysis-text" class="analysis"></p>
+        <div>
+          <h3 class="subheading">Extracted Themes</h3>
+          <div id="theme-tags" class="theme-tags" role="list"></div>
+        </div>
+        <div>
+          <h3 class="subheading">Advice</h3>
+          <ul id="advice-list" class="advice-list"></ul>
+        </div>
+        <div class="result-actions">
+          <button id="regenerate-btn" type="button" class="secondary">Regenerate Images</button>
+          <button id="start-over-btn" type="button" class="danger">Start Over</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="disclaimer">
+      <small>This probability is for entertainment only and not a real prediction.</small>
+    </footer>
+
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-content">
+        <h2 id="modal-title">Reset everything?</h2>
+        <p>This will clear your wish, images, and interpretations.</p>
+        <div class="modal-actions">
+          <button id="modal-cancel" type="button" class="secondary">Cancel</button>
+          <button id="modal-confirm" type="button" class="danger">Yes, Start Over</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

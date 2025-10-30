@@ -2,6 +2,8 @@
   "use strict";
 
   const STORAGE_KEY = "wish-oracle-state";
+  const DEVELOPER_HISTORY_KEY = "wish-oracle-history";
+  const MAX_DEVELOPER_HISTORY = 25;
   const IMAGE_COUNT = 4;
   const INTERPRETATION_LIMIT = 200;
   const POSITIVE_WORDS = [
@@ -284,6 +286,7 @@
     state.advice = advice;
     state.stage = "result";
 
+    recordDeveloperSubmission();
     renderResultSection();
     updateStageView();
     saveState();
@@ -647,11 +650,13 @@
     if (!developerPanelVisible || !elements.developerPanelContent) return;
     const payload = persistedSnapshot || buildPersistedState();
     const compact = JSON.stringify(payload);
+    const history = getDeveloperHistory();
     const derived = {
       updatedAt: new Date().toISOString(),
       interpretationsFilled: payload.interpretations.filter((text) => text.trim().length > 0).length,
       imagesReady: payload.images.length,
-      storageBytes: compact.length
+      storageBytes: compact.length,
+      developerHistoryEntries: history.length
     };
     const snapshot = {
       ...derived,
@@ -669,10 +674,64 @@
         url: image.url
       })),
       imageSeed: payload.imageSeed,
-      themePreference: payload.themePreference
+      themePreference: payload.themePreference,
+      developerHistory: history
     };
     elements.developerPanelContent.textContent = JSON.stringify(snapshot, null, 2);
     elements.developerPanelContent.scrollTop = 0;
+  }
+
+  function recordDeveloperSubmission() {
+    try {
+      const persisted = buildPersistedState();
+      if (!persisted.wish) return;
+      const hasInput = persisted.interpretations.some((text) => text.trim().length > 0);
+      if (!hasInput) return;
+      const entry = {
+        timestamp: new Date().toISOString(),
+        wish: persisted.wish,
+        wishInput: persisted.wishInput,
+        interpretations: persisted.interpretations.map((text) => text),
+        probability: persisted.probability,
+        themes: persisted.themes.map((theme) => theme),
+        advice: persisted.advice.map((tip) => tip),
+        analysis: persisted.analysis,
+        images: persisted.images.map((image, index) => ({
+          index,
+          keyword: image.keyword,
+          url: image.url
+        })),
+        imageSeed: persisted.imageSeed
+      };
+      appendDeveloperHistory(entry);
+    } catch (error) {
+      console.warn("Developer history could not be recorded.", error);
+    }
+  }
+
+  function appendDeveloperHistory(entry) {
+    const history = getDeveloperHistory();
+    history.unshift(entry);
+    const pruned = history.slice(0, MAX_DEVELOPER_HISTORY);
+    try {
+      localStorage.setItem(DEVELOPER_HISTORY_KEY, JSON.stringify(pruned));
+    } catch (error) {
+      console.warn("Unable to persist developer history.", error);
+      return;
+    }
+    refreshDeveloperPanel();
+  }
+
+  function getDeveloperHistory() {
+    try {
+      const stored = localStorage.getItem(DEVELOPER_HISTORY_KEY);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn("Developer history could not be loaded.", error);
+      return [];
+    }
   }
 
   function chooseKeywords(wishText) {

@@ -88,7 +88,10 @@
     themeToggle: document.getElementById("theme-toggle"),
     modal: document.getElementById("confirm-modal"),
     modalCancel: document.getElementById("modal-cancel"),
-    modalConfirm: document.getElementById("modal-confirm")
+    modalConfirm: document.getElementById("modal-confirm"),
+    developerPanel: document.getElementById("developer-panel"),
+    developerPanelContent: document.getElementById("developer-panel-content"),
+    developerPanelClose: document.getElementById("developer-panel-close")
   };
 
   const DEFAULT_STATE = () => ({
@@ -106,6 +109,7 @@
   });
 
   let state = DEFAULT_STATE();
+  let developerPanelVisible = false;
 
   function init() {
     loadState();
@@ -124,6 +128,9 @@
     elements.modal.addEventListener("click", modalBackdropHandler);
     document.addEventListener("keydown", handleGlobalKeydown);
     elements.themeToggle.addEventListener("click", cycleTheme);
+    if (elements.developerPanelClose) {
+      elements.developerPanelClose.addEventListener("click", () => toggleDeveloperPanel(false));
+    }
   }
 
   function handleWishInput(event) {
@@ -524,8 +531,25 @@
   }
 
   function handleGlobalKeydown(event) {
-    if (event.key === "Escape" && !elements.modal.classList.contains("hidden")) {
-      closeModal();
+    if (event.key === "Escape") {
+      if (!elements.modal.classList.contains("hidden")) {
+        closeModal();
+        return;
+      }
+      if (developerPanelVisible) {
+        toggleDeveloperPanel(false);
+        return;
+      }
+    }
+
+    const wantsDevToggle =
+      event.key.toLowerCase() === "d" &&
+      event.shiftKey &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey;
+    if (wantsDevToggle) {
+      event.preventDefault();
+      toggleDeveloperPanel();
     }
   }
 
@@ -583,7 +607,17 @@
   }
 
   function saveState() {
-    const payload = {
+    const payload = buildPersistedState();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      showToast("Storage is unavailable. Progress may not be saved.", "error");
+    }
+    refreshDeveloperPanel(payload);
+  }
+
+  function buildPersistedState() {
+    return {
       stage: state.stage,
       wishInput: state.wishInput,
       wish: state.wish,
@@ -596,11 +630,49 @@
       imageSeed: state.imageSeed,
       themePreference: state.themePreference
     };
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    } catch (error) {
-      showToast("Storage is unavailable. Progress may not be saved.", "error");
+  }
+
+  function toggleDeveloperPanel(forceState) {
+    if (!elements.developerPanel) return;
+    const nextVisible =
+      typeof forceState === "boolean" ? forceState : !developerPanelVisible;
+    developerPanelVisible = nextVisible;
+    elements.developerPanel.hidden = !nextVisible;
+    if (nextVisible) {
+      refreshDeveloperPanel();
     }
+  }
+
+  function refreshDeveloperPanel(persistedSnapshot) {
+    if (!developerPanelVisible || !elements.developerPanelContent) return;
+    const payload = persistedSnapshot || buildPersistedState();
+    const compact = JSON.stringify(payload);
+    const derived = {
+      updatedAt: new Date().toISOString(),
+      interpretationsFilled: payload.interpretations.filter((text) => text.trim().length > 0).length,
+      imagesReady: payload.images.length,
+      storageBytes: compact.length
+    };
+    const snapshot = {
+      ...derived,
+      stage: payload.stage,
+      wishInput: payload.wishInput,
+      wish: payload.wish,
+      probability: payload.probability,
+      analysis: payload.analysis,
+      interpretations: payload.interpretations,
+      themes: payload.themes,
+      advice: payload.advice,
+      images: payload.images.map((image, index) => ({
+        index,
+        keyword: image.keyword,
+        url: image.url
+      })),
+      imageSeed: payload.imageSeed,
+      themePreference: payload.themePreference
+    };
+    elements.developerPanelContent.textContent = JSON.stringify(snapshot, null, 2);
+    elements.developerPanelContent.scrollTop = 0;
   }
 
   function chooseKeywords(wishText) {

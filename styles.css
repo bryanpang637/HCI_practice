@@ -416,3 +416,64 @@ body[data-theme="dark"] .image-card {
     grid-template-columns: 1fr;
   }
 }
+
+.developer-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 60vh;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card-color);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1100;
+  overflow: hidden;
+}
+
+.developer-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.developer-panel__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+}
+
+.developer-panel__content {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: var(--accent-soft);
+  color: var(--text-color);
+  font-family: "SFMono-Regular", "Menlo", "Consolas", "Liberation Mono", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.developer-panel__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted-text);
+}
+
+.developer-panel__header .secondary {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 10px;
+}
